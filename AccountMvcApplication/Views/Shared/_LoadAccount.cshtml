@@ -1,0 +1,23 @@
+﻿@model AccountMvcApplication.Models.EditAccountModel
+
+    <fieldset>
+        <legend>變更密碼表單</legend>
+        <ol>
+            <li>帳戶編號：
+                @Html.Label(Model.UserId.ToString())
+                @Html.Hidden("UserId",Model.UserId.ToString())
+            </li>
+            <li>
+                帳戶名稱：
+                @Html.Label(Model.UserName)
+            </li>
+            <li>
+                @Html.CheckBoxFor(m => m.IsConfirmed)
+                @Html.LabelFor(m => m.IsConfirmed, new { @class = "checkbox" })
+            </li>
+            <li>
+                <input type="submit" value="送出" class="EditFormSubmit" />
+            </li>
+
+        </ol>
+    </fieldset>

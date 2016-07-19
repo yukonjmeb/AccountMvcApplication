@@ -1,0 +1,110 @@
+﻿@model IEnumerable<AccountMvcApplication.Models.LoginModel> 
+@using GridMvc.Html
+<hgroup class="title">
+    <h1>@ViewBag.Title.</h1>
+    <h2>@ViewBag.Message</h2>
+</hgroup>
+
+    <h3>管理所有帳戶</h3>
+
+    <link href="@Url.Content("~/Content/Gridmvc.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/bootstrap.min.css")" rel="stylesheet" />
+    <script src="@Url.Content("~/Scripts/jquery-1.9.1.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/gridmvc.min.js")"></script>
+
+@if (Session["UserName"] != null)
+{
+    <div class="code-cut">
+        @Html.Grid(Model).Columns(columns =>
+                    {
+                        columns.Add(c => c.UserName).Titled("名稱").Filterable(true);
+                        columns.Add(c => c.Password).Titled("密碼").Filterable(true);
+                        columns.Add(c => c.IsConfirmed).Titled("啟用").Filterable(true);
+                        columns.Add()
+                        .Encoded(false)
+                        .Sanitized(false)
+                        .SetWidth(30)
+                        .RenderValueAs(o => Html.ActionLink("Edit", "", new { id = o.UserId }, new { @class = "edit", id = o.UserId }));
+                        columns.Add()
+                        .Encoded(false)
+                        .Sanitized(false)
+                        .SetWidth(30)
+                       .RenderValueAs(o => Html.ActionLink("Delete", "", new { id = o.UserId }, new { @class = "delete", id = o.UserId }));
+                    }).WithPaging(1).Sortable(true)
+    </div>
+}else{
+     @Html.Partial("_RemindLoginPartial")
+}
+    
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+
+            //儲存變更資料
+            function EditFormSubmit() {
+                var isconfirmed = $('#IsConfirmed').prop('checked');
+                $('.EditFormSubmit').click(function () {
+                    var id = $('#UserId').attr('value');
+                    isconfirmedchanged = $('#IsConfirmed').prop('checked');
+
+                    if (isconfirmed != isconfirmedchanged) {
+                        $.ajax({
+                            url: '/Home/EditAccount',
+                            method: "POST",
+                            data: { id: id, IsConfirmed: isconfirmedchanged },
+                            dataType: "html",
+                            success: function (data) {
+                                //重新讀取頁面
+                                window.location.reload(true);
+                            }
+                        });
+                    }else{
+                        $.unblockUI();
+                    }
+                    return false;
+                });
+            }
+            
+            //按下編輯按鈕
+            $('.edit').click(function () {
+                var id = $(this).attr('id');
+                $.ajax({
+                    url: '/Home/ShowAccountDetail',
+                    method: "POST",
+                    data: { id: id },
+                    dataType: "html",
+                    success: function (data) {
+                        $.blockUI({
+                            theme: true,
+                            title: '編輯帳戶資料',
+                            message: data,
+                            onOverlayClick: $.unblockUI
+                        });
+                        EditFormSubmit();
+                    }
+                });
+                return false;
+            });
+
+            //按下刪除按鈕
+            $('.delete').click(function () {
+                var id = $(this).attr('id');
+                if (confirm("確定刪除?")) {
+                    $.ajax({
+                        url: '/Home/DeleteAccount',
+                        method: "POST",
+                        data: { id: id },
+                        dataType: "html",
+                        success: function (data) {
+                            window.location.reload(true);
+                        }
+                    });
+                }
+                return false;
+            });
+
+        });
+    </script>
+
+}
